@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🐕 Cooper's Health Tracker</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 16px;
+    }
+    
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      color: white;
+      margin-bottom: 20px;
+    }
+    
+    header h1 {
+      font-size: 1.8rem;
+      margin-bottom: 4px;
+    }
+    
+    header p {
+      opacity: 0.9;
+      font-size: 0.9rem;
+    }
+    
+    .sync-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.2);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      margin-top: 8px;
+    }
+    
+    .sync-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #4ade80;
+    }
+    
+    .sync-dot.offline {
+      background: #f87171;
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .tab {
+      flex: 1;
+      min-width: 60px;
+      padding: 10px 6px;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: rgba(255,255,255,0.2);
+      color: white;
+    }
+    
+    .tab.active {
+      background: white;
+      color: #764ba2;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    
+    .card h2 {
+      font-size: 1.1rem;
+      color: #333;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .med-group {
+      margin-bottom: 20px;
+    }
+    
+    .med-group-header {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      background: #f0f0f0;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .med-group-header .scheduled {
+      color: #666;
+      font-weight: 500;
+    }
+    
+    .med-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      margin-bottom: 8px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      transition: all 0.2s;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .med-item.given {
+      background: #d4edda;
+    }
+    
+    .med-item.adhoc {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+    }
+    
+    .med-item.adhoc.given {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+    }
+    
+    .med-item input[type="checkbox"] {
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    
+    .med-info {
+      flex: 1;
+      min-width: 120px;
+    }
+    
+    .med-name {
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .med-dose {
+      font-size: 0.85rem;
+      color: #666;
+    }
+    
+    .med-times {
+      font-size: 0.75rem;
+      color: #888;
+      margin-top: 4px;
+    }
+    
+    .med-times .actual-time {
+      color: #28a745;
+      font-weight: 600;
+    }
+    
+    .med-given-by {
+      font-size: 0.75rem;
+      color: #28a745;
+      margin-top: 2px;
+    }
+    
+    .meal-toggle {
+      display: flex;
+      gap: 6px;
+    }
+    
+    .meal-btn {
+      padding: 6px 12px;
+      border: 2px solid #ddd;
+      border-radius: 20px;
+      background: white;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .meal-btn.active {
+      border-color: #764ba2;
+      background: #764ba2;
+      color: white;
+    }
+    
+    /* Ad-hoc form */
+    .adhoc-form {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    
+    .adhoc-form h3 {
+      font-size: 0.95rem;
+      color: #333;
+      margin-bottom: 12px;
+    }
+    
+    .adhoc-form select {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+    
+    .adhoc-form .form-row {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .adhoc-form .form-row select {
+      flex: 1;
+    }
+    
+    .adhoc-form button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      background: #ffc107;
+      color: #333;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    
+    .adhoc-form button:hover {
+      background: #e0a800;
+    }
+    
+    .delete-adhoc {
+      padding: 4px 8px;
+      border: none;
+      background: #ffebee;
+      color: #c62828;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.7rem;
+      margin-left: 8px;
+    }
+
+    /* Bathroom Tracking */
+    .bathroom-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .bathroom-btn {
+      padding: 20px;
+      border: 3px solid #e0e0e0;
+      border-radius: 16px;
+      background: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .bathroom-btn:active {
+      transform: scale(0.95);
+    }
+    
+    .bathroom-btn.pee {
+      border-color: #ffc107;
+      background: #fff9e6;
+    }
+    
+    .bathroom-btn.poo {
+      border-color: #8b4513;
+      background: #fdf5e6;
+    }
+    
+    .bathroom-btn .emoji {
+      font-size: 2rem;
+    }
+    
+    .bathroom-btn .label {
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .quality-select {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-top: 8px;
+    }
+    
+    /* Log entries */
+    .log-entry {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    
+    .log-entry .emoji {
+      font-size: 1.5rem;
+      margin-right: 12px;
+    }
+    
+    .log-entry .details {
+      flex: 1;
+    }
+    
+    .log-entry .time {
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .log-entry .note {
+      font-size: 0.85rem;
+      color: #666;
+    }
+    
+    .log-entry .logged-by {
+      font-size: 0.75rem;
+      color: #999;
+    }
+    
+    .log-entry .delete {
+      padding: 6px 10px;
+      border: none;
+      background: #ffebee;
+      color: #c62828;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    
+    .log-entry .edit {
+      padding: 6px 10px;
+      border: none;
+      background: #e3f2fd;
+      color: #1565c0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    
+    .log-entry .actions {
+      display: flex;
+      gap: 6px;
+    }
+    
+    .edit-form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 100%;
+      padding: 12px;
+      background: #fff3e0;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      border: 2px solid #ff9800;
+    }
+    
+    .edit-form .form-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    
+    .edit-form label {
+      font-size: 0.8rem;
+      color: #666;
+      min-width: 50px;
+    }
+    
+    .edit-form input,
+    .edit-form select {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    
+    .edit-form .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    
+    .edit-form .save-btn {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      background: #4caf50;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    
+    .edit-form .cancel-btn {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      background: #9e9e9e;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    
+    /* History */
+    .date-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    
+    .date-nav button {
+      padding: 8px 16px;
+      border: none;
+      background: #764ba2;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    
+    .date-nav button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .date-nav .current-date {
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .summary-stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .summary-stat:last-child {
+      border-bottom: none;
+    }
+    
+    .summary-stat .label {
+      color: #666;
+    }
+    
+    .summary-stat .value {
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+    
+    .notes-input {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin-top: 12px;
+      resize: none;
+    }
+    
+    .save-note-btn {
+      margin-top: 8px;
+      padding: 10px 20px;
+      border: none;
+      background: #764ba2;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      width: 100%;
+    }
+    
+    .next-dose {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-align: center;
+      padding: 16px;
+    }
+    
+    .next-dose h3 {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      margin-bottom: 4px;
+    }
+    
+    .next-dose .time {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+    
+    .next-dose .drugs {
+      font-size: 0.85rem;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+    
+    .export-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      background: #28a745;
+      color: white;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    
+    /* User Setup Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    
+    .modal {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    
+    .modal h2 {
+      margin-bottom: 10px;
+      color: #333;
+    }
+    
+    .modal p {
+      color: #666;
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+    }
+    
+    .modal input, .modal select {
+      width: 100%;
+      padding: 14px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+    
+    .modal label {
+      display: block;
+      text-align: left;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+      font-size: 0.9rem;
+    }
+    
+    .modal button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    
+    .modal .btn-secondary {
+      background: #6c757d;
+      margin-top: 8px;
+    }
+    
+    .user-badge {
+      background: rgba(255,255,255,0.2);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      margin-left: 8px;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+    
+    .activity-log {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .adhoc-section {
+      border-top: 2px dashed #ddd;
+      margin-top: 16px;
+      padding-top: 16px;
+    }
+    
+    .adhoc-section h3 {
+      font-size: 0.95rem;
+      color: #666;
+      margin-bottom: 12px;
+    }
+    
+    /* Settings */
+    .info-text {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 12px;
+    }
+    
+    .drug-list-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .drug-list-item.current-drug {
+      background: #e8f5e9;
+      border-left: 4px solid #4caf50;
+    }
+    
+    .drug-list-item .drug-details {
+      flex: 1;
+    }
+    
+    .drug-list-item .drug-name {
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .drug-list-item .drug-schedule {
+      font-size: 0.8rem;
+      color: #666;
+    }
+    
+    .drug-list-item .delete-btn {
+      padding: 6px 12px;
+      border: none;
+      background: #ffebee;
+      color: #c62828;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    
+    .section-divider {
+      border-top: 1px solid #eee;
+      margin: 20px 0;
+      padding-top: 16px;
+    }
+    
+    .section-divider h3 {
+      font-size: 0.95rem;
+      color: #333;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <!-- User Setup Modal -->
+  <div class="modal-overlay" id="userModal">
+    <div class="modal">
+      <h2>👋 Welcome!</h2>
+      <p>Enter your name so others know who gave meds or logged bathroom breaks.</p>
+      <input type="text" id="userNameInput" placeholder="Your name (e.g., Keith)" maxlength="20">
+      <button onclick="saveUserName()">Start Tracking</button>
+    </div>
+  </div>
+  
+  <!-- Add Drug Modal -->
+  <div class="modal-overlay hidden" id="addDrugModal">
+    <div class="modal">
+      <h2>➕ Add New Medication</h2>
+      <p>Set up a new medication for future scheduling</p>
+      
+      <label>Drug Name</label>
+      <input type="text" id="newDrugName" placeholder="e.g., Benadryl">
+      
+      <label>Dose Options (comma-separated)</label>
+      <input type="text" id="newDrugDoses" placeholder="e.g., 1/4 tablet, 1/2 tablet, 1 tablet">
+      
+      <label>Default Dose</label>
+      <select id="newDrugDefaultDose">
+        <option value="">-- Enter doses above first --</option>
+      </select>
+      
+      <label>Hours Between Doses</label>
+      <select id="newDrugHours">
+        <option value="6">Every 6 hours</option>
+        <option value="8">Every 8 hours</option>
+        <option value="12" selected>Every 12 hours</option>
+        <option value="24">Every 24 hours</option>
+      </select>
+      
+      <label>Duration (Weeks)</label>
+      <select id="newDrugWeeks">
+        <option value="1">1 week</option>
+        <option value="2">2 weeks</option>
+        <option value="4">4 weeks</option>
+        <option value="8" selected>8 weeks</option>
+        <option value="12">12 weeks</option>
+        <option value="0">Ongoing (no end date)</option>
+      </select>
+      
+      <label>Start Date</label>
+      <input type="date" id="newDrugStartDate">
+      
+      <label>Start Time</label>
+      <input type="time" id="newDrugStartTime" value="06:00">
+      
+      <button onclick="saveDrugConfig()">Add Medication</button>
+      <button class="btn-secondary" onclick="closeAddDrugModal()">Cancel</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <header>
+      <h1>🐕 Cooper's Tracker <span class="user-badge" id="userBadge"></span></h1>
+      <p id="currentDate"></p>
+      <div class="sync-status">
+        <span class="sync-dot" id="syncDot"></span>
+        <span id="syncText">Synced</span>
+      </div>
+    </header>
+    
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('meds')">💊 Meds</button>
+      <button class="tab" onclick="showTab('bathroom')">🚽 Bathroom</button>
+      <button class="tab" onclick="showTab('history')">📊 History</button>
+      <button class="tab" onclick="showTab('settings')">⚙️</button>
+    </div>
+    
+    <!-- MEDICATIONS TAB -->
+    <div id="meds-tab">
+      <div class="card next-dose">
+        <h3>Next Dose</h3>
+        <div class="time" id="nextDoseTime">--:--</div>
+        <div class="drugs" id="nextDoseDrugs"></div>
+      </div>
+      
+      <div class="card">
+        <h2>💊 Today's Medications</h2>
+        <div id="medsList"><div class="loading">Loading...</div></div>
+        
+        <!-- Ad-hoc drugs section -->
+        <div class="adhoc-section">
+          <h3>➕ Ad-hoc Medications</h3>
+          <div id="adhocMedsList"></div>
+          
+          <div class="adhoc-form">
+            <h3>Add One-Time Medication</h3>
+            <div class="form-row">
+              <select id="adhocDrugSelect">
+                <option value="">Select drug...</option>
+              </select>
+              <select id="adhocDoseSelect">
+                <option value="">Select dose...</option>
+              </select>
+            </div>
+            <button onclick="addAdhocDrug()">+ Add One-Time Dose</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2>📝 Daily Notes</h2>
+        <textarea class="notes-input" id="dailyNotes" rows="3" placeholder="Any observations about appetite, energy, behavior..."></textarea>
+        <button class="save-note-btn" onclick="saveDailyNote()">Save Note</button>
+      </div>
+    </div>
+    
+    <!-- BATHROOM TAB -->
+    <div id="bathroom-tab" class="hidden">
+      <div class="card">
+        <h2>🚽 Log Bathroom Break</h2>
+        <div class="bathroom-grid">
+          <button class="bathroom-btn pee" onclick="logBathroom('pee')">
+            <span class="emoji">💧</span>
+            <span class="label">Pee</span>
+          </button>
+          <button class="bathroom-btn poo" onclick="logBathroom('poo')">
+            <span class="emoji">💩</span>
+            <span class="label">Poop</span>
+          </button>
+        </div>
+        <select class="quality-select" id="poopQuality">
+          <option value="">Poop quality (optional)</option>
+          <option value="normal">Normal / Solid</option>
+          <option value="soft">Soft</option>
+          <option value="loose">Loose / Runny</option>
+          <option value="hard">Hard / Dry</option>
+          <option value="mucus">Has Mucus</option>
+          <option value="blood">Has Blood ⚠️</option>
+        </select>
+      </div>
+      
+      <div class="card">
+        <h2>📋 Today's Bathroom Log</h2>
+        <div id="bathroomLog" class="activity-log"><div class="loading">Loading...</div></div>
+      </div>
+    </div>
+    
+    <!-- HISTORY TAB -->
+    <div id="history-tab" class="hidden">
+      <div class="card">
+        <div class="date-nav">
+          <button onclick="changeHistoryDate(-1)">← Prev</button>
+          <span class="current-date" id="historyDate"></span>
+          <button onclick="changeHistoryDate(1)" id="nextDayBtn">Next →</button>
+        </div>
+        
+        <h2>📊 Daily Summary</h2>
+        <div id="historySummary"><div class="loading">Loading...</div></div>
+      </div>
+      
+      <div class="card">
+        <h2>📤 Export Data</h2>
+        <p style="color:#666; font-size:0.9rem; margin-bottom:12px;">Download all tracking data as CSV for your vet or records.</p>
+        <button class="export-btn" onclick="exportData()">Download CSV</button>
+      </div>
+    </div>
+    
+    <!-- SETTINGS TAB -->
+    <div id="settings-tab" class="hidden">
+      <div class="card">
+        <h2>💊 Current Medications</h2>
+        <p class="info-text">These are Cooper's current scheduled medications (6am & 6pm daily).</p>
+        <div id="currentDrugsList"></div>
+        
+        <div class="section-divider">
+          <h3>➕ Add Future Medications</h3>
+          <p class="info-text">Add new medications that will appear in the ad-hoc dropdown and can be scheduled.</p>
+          <div id="customDrugsList"></div>
+          <button class="btn-primary" style="margin-top:12px;" onclick="openAddDrugModal()">+ Add New Medication</button>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2>👤 User Settings</h2>
+        <p class="info-text">Currently logged in as: <strong id="currentUserDisplay"></strong></p>
+        <button class="btn-primary" style="background:#6c757d;" onclick="changeUser()">Change Name</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  
+  <script>
+    // ========== FIREBASE CONFIG ==========
+    const firebaseConfig = {
+      apiKey: "AIzaSyCRxFSsvzhmV8QcEtz8D_1ms5ff8wY1o_Q",
+      authDomain: "cooper-journey.firebaseapp.com",
+      projectId: "cooper-journey",
+      storageBucket: "cooper-journey.firebasestorage.app",
+      messagingSenderId: "517822729682",
+      appId: "1:517822729682:web:5773b9f6b2f9dfa5260c0b"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    
+    // Enable offline persistence
+    db.enablePersistence().catch((err) => {
+      console.log('Persistence error:', err);
+    });
+    
+    // ========== CONFIGURATION ==========
+    // CURRENT drugs on 12-hour schedule (6am and 6pm) - HARDCODED to preserve existing data
+    const MEDICATIONS = [
+      { id: 'gabapentin', name: 'Gabapentin', dose: '1/2 tablet', doses: ['1/4 tablet', '1/2 tablet', '1 tablet'] },
+      { id: 'trazodone', name: 'Trazodone', dose: '1.5 tablets', doses: ['1 tablet', '1.5 tablets', '2 tablets'] },
+      { id: 'diazepam', name: 'Diazepam', dose: '1 tablet', doses: ['1/2 tablet', '1 tablet', '1.5 tablets'] },
+      { id: 'carprofen', name: 'Carprofen', dose: '1/2 tablet', doses: ['1/4 tablet', '1/2 tablet', '1 tablet'] },
+      { id: 'thyrotabs', name: 'Thyro-Tabs', dose: '1 tablet', doses: ['1/2 tablet', '1 tablet', '1.5 tablets'] }
+    ];
+    
+    // 12-hour schedule: 6am and 6pm
+    const SCHEDULE = [
+      { id: 'dose_0600', time: '06:00', label: '6:00 AM' },
+      { id: 'dose_1800', time: '18:00', label: '6:00 PM' }
+    ];
+    
+    // ========== STATE ==========
+    let currentTab = 'meds';
+    let historyDateOffset = 0;
+    let currentUser = localStorage.getItem('dogtracker_user') || '';
+    let todayData = { meds: {}, adhocMeds: [], bathroom: [], notes: '' };
+    let customDrugs = []; // From Firebase for future drugs
+    let unsubscribeMeds = null;
+    let unsubscribeBathroom = null;
+    let unsubscribeCustomDrugs = null;
+    
+    // ========== DATE HELPERS ==========
+    function getDateKey(offset = 0) {
+      const d = new Date();
+      d.setDate(d.getDate() + offset);
+      return d.toISOString().split('T')[0];
+    }
+    
+    function getTodayDocRef() {
+      return db.collection('days').doc(getDateKey());
+    }
+    
+    function formatTime(date) {
+      return new Date(date).toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      });
+    }
+    
+    // ========== USER SETUP ==========
+    function checkUser() {
+      if (currentUser) {
+        document.getElementById('userModal').classList.add('hidden');
+        document.getElementById('userBadge').textContent = currentUser;
+        document.getElementById('currentUserDisplay').textContent = currentUser;
+        initApp();
+      } else {
+        document.getElementById('userModal').classList.remove('hidden');
+      }
+    }
+    
+    function saveUserName() {
+      const name = document.getElementById('userNameInput').value.trim();
+      if (name) {
+        currentUser = name;
+        localStorage.setItem('dogtracker_user', name);
+        document.getElementById('userModal').classList.add('hidden');
+        document.getElementById('userBadge').textContent = name;
+        document.getElementById('currentUserDisplay').textContent = name;
+        initApp();
+      }
+    }
+    
+    function changeUser() {
+      const name = prompt('Enter your name:', currentUser);
+      if (name && name.trim()) {
+        currentUser = name.trim();
+        localStorage.setItem('dogtracker_user', currentUser);
+        document.getElementById('userBadge').textContent = currentUser;
+        document.getElementById('currentUserDisplay').textContent = currentUser;
+      }
+    }
+    
+    // ========== SYNC STATUS ==========
+    function updateSyncStatus(online) {
+      const dot = document.getElementById('syncDot');
+      const text = document.getElementById('syncText');
+      if (online) {
+        dot.classList.remove('offline');
+        text.textContent = 'Synced';
+      } else {
+        dot.classList.add('offline');
+        text.textContent = 'Offline';
+      }
+    }
+    
+    // ========== TABS ==========
+    function showTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      document.getElementById('meds-tab').classList.toggle('hidden', tab !== 'meds');
+      document.getElementById('bathroom-tab').classList.toggle('hidden', tab !== 'bathroom');
+      document.getElementById('history-tab').classList.toggle('hidden', tab !== 'history');
+      document.getElementById('settings-tab').classList.toggle('hidden', tab !== 'settings');
+      
+      if (tab === 'history') {
+        historyDateOffset = 0;
+        loadHistoryData();
+      }
+      if (tab === 'settings') {
+        renderCurrentDrugsList();
+        renderCustomDrugsList();
+      }
+    }
+    
+    // ========== MEDICATIONS ==========
+    function subscribeToMeds() {
+      if (unsubscribeMeds) unsubscribeMeds();
+      
+      unsubscribeMeds = getTodayDocRef().onSnapshot((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          todayData.meds = data.meds || {};
+          todayData.adhocMeds = data.adhocMeds || [];
+          todayData.notes = data.notes || '';
+          document.getElementById('dailyNotes').value = todayData.notes;
+        } else {
+          todayData.meds = {};
+          todayData.adhocMeds = [];
+          todayData.notes = '';
+        }
+        renderMeds();
+        renderAdhocMeds();
+        updateSyncStatus(true);
+      }, (error) => {
+        console.error('Meds sync error:', error);
+        updateSyncStatus(false);
+      });
+    }
+    
+    function renderMeds() {
+      const container = document.getElementById('medsList');
+      container.innerHTML = '';
+      
+      SCHEDULE.forEach((slot) => {
+        const group = document.createElement('div');
+        group.className = 'med-group';
+        
+        const header = document.createElement('div');
+        header.className = 'med-group-header';
+        header.innerHTML = `<span>⏰ Scheduled: ${slot.label}</span>`;
+        group.appendChild(header);
+        
+        MEDICATIONS.forEach((drug) => {
+          const medKey = `${slot.id}_${drug.id}`;
+          const medData = todayData.meds[medKey] || { given: false, meal: '', givenBy: '', givenAt: null, scheduledTime: slot.label };
+          
+          const item = document.createElement('div');
+          item.className = `med-item ${medData.given ? 'given' : ''}`;
+          
+          // Build time info HTML
+          let timeInfoHtml = `<div class="med-times">Scheduled: ${slot.label}`;
+          if (medData.given && medData.givenAt) {
+            timeInfoHtml += ` → <span class="actual-time">Actual: ${formatTime(medData.givenAt)}</span>`;
+          }
+          timeInfoHtml += '</div>';
+          
+          // Build given by HTML
+          let givenByHtml = '';
+          if (medData.given && medData.givenBy) {
+            givenByHtml = `<div class="med-given-by">✓ Given by ${medData.givenBy}</div>`;
+          }
+          
+          item.innerHTML = `
+            <input type="checkbox" ${medData.given ? 'checked' : ''} 
+                   onchange="toggleMed('${medKey}', '${slot.label}', this.checked)">
+            <div class="med-info">
+              <div class="med-name">${drug.name}</div>
+              <div class="med-dose">${drug.dose}</div>
+              ${timeInfoHtml}
+              ${givenByHtml}
+            </div>
+            <div class="meal-toggle">
+              <button class="meal-btn ${medData.meal === 'M' ? 'active' : ''}" 
+                      onclick="setMeal('${medKey}', 'M')">Meal</button>
+              <button class="meal-btn ${medData.meal === 'S' ? 'active' : ''}" 
+                      onclick="setMeal('${medKey}', 'S')">Snack</button>
+            </div>
+          `;
+          group.appendChild(item);
+        });
+        
+        container.appendChild(group);
+      });
+      
+      updateNextDose();
+    }
+    
+    async function toggleMed(key, scheduledTime, given) {
+      const medData = todayData.meds[key] || { given: false, meal: '', givenBy: '', givenAt: null, scheduledTime: '' };
+      medData.given = given;
+      medData.givenBy = given ? currentUser : '';
+      medData.givenAt = given ? new Date().toISOString() : null;
+      medData.scheduledTime = scheduledTime;
+      
+      todayData.meds[key] = medData;
+      
+      try {
+        await getTodayDocRef().set({ meds: todayData.meds }, { merge: true });
+      } catch (error) {
+        console.error('Error saving med:', error);
+      }
+    }
+    
+    async function setMeal(key, type) {
+      const medData = todayData.meds[key] || { given: false, meal: '', givenBy: '', givenAt: null, scheduledTime: '' };
+      medData.meal = medData.meal === type ? '' : type;
+      todayData.meds[key] = medData;
+      
+      try {
+        await getTodayDocRef().set({ meds: todayData.meds }, { merge: true });
+      } catch (error) {
+        console.error('Error saving meal:', error);
+      }
+    }
+    
+    function updateNextDose() {
+      const now = new Date();
+      const currentTime = now.getHours() * 60 + now.getMinutes();
+      
+      let nextSlot = null;
+      for (const slot of SCHEDULE) {
+        const [h, m] = slot.time.split(':').map(Number);
+        const slotMinutes = h * 60 + m;
+        if (slotMinutes > currentTime) {
+          nextSlot = slot;
+          break;
+        }
+      }
+      
+      if (!nextSlot) {
+        nextSlot = SCHEDULE[0];
+        document.getElementById('nextDoseTime').textContent = `Tomorrow ${nextSlot.label}`;
+      } else {
+        document.getElementById('nextDoseTime').textContent = nextSlot.label;
+      }
+      
+      document.getElementById('nextDoseDrugs').textContent = MEDICATIONS.map(d => d.name).join(', ');
+    }
+    
+    async function saveDailyNote() {
+      const notes = document.getElementById('dailyNotes').value;
+      try {
+        await getTodayDocRef().set({ notes: notes, notesBy: currentUser }, { merge: true });
+        alert('Note saved!');
+      } catch (error) {
+        console.error('Error saving note:', error);
+        alert('Error saving note. Check connection.');
+      }
+    }
+    
+    // ========== AD-HOC MEDICATIONS ==========
+    function getAllDrugsForAdhoc() {
+      // Combine hardcoded MEDICATIONS with custom drugs from Firebase
+      const allDrugs = [...MEDICATIONS];
+      customDrugs.forEach(cd => {
+        allDrugs.push({
+          id: cd.id,
+          name: cd.name,
+          dose: cd.defaultDose,
+          doses: cd.doses,
+          isCustom: true
+        });
+      });
+      return allDrugs;
+    }
+    
+    function populateAdhocDropdowns() {
+      const drugSelect = document.getElementById('adhocDrugSelect');
+      const doseSelect = document.getElementById('adhocDoseSelect');
+      const allDrugs = getAllDrugsForAdhoc();
+      
+      drugSelect.innerHTML = '<option value="">Select drug...</option>' + 
+        allDrugs.map(d => `<option value="${d.id}">${d.name}${d.isCustom ? ' ✨' : ''}</option>`).join('');
+      
+      drugSelect.onchange = function() {
+        const selectedDrug = allDrugs.find(d => d.id === this.value);
+        if (selectedDrug && selectedDrug.doses) {
+          doseSelect.innerHTML = selectedDrug.doses.map(dose => 
+            `<option value="${dose}" ${dose === selectedDrug.dose ? 'selected' : ''}>${dose}</option>`
+          ).join('');
+        } else {
+          doseSelect.innerHTML = '<option value="">Select dose...</option>';
+        }
+      };
+    }
+    
+    function renderAdhocMeds() {
+      const container = document.getElementById('adhocMedsList');
+      
+      if (todayData.adhocMeds.length === 0) {
+        container.innerHTML = '<p style="color:#999; font-size:0.85rem; margin-bottom:12px;">No ad-hoc medications added today.</p>';
+        return;
+      }
+      
+      container.innerHTML = todayData.adhocMeds.map((drug, index) => {
+        let timeInfoHtml = `<div class="med-times">Added: ${formatTime(drug.addedAt)}`;
+        if (drug.given && drug.givenAt) {
+          timeInfoHtml += ` → <span class="actual-time">Given: ${formatTime(drug.givenAt)}</span>`;
+        }
+        timeInfoHtml += '</div>';
+        
+        let givenByHtml = '';
+        if (drug.given && drug.givenBy) {
+          givenByHtml = `<div class="med-given-by">✓ Given by ${drug.givenBy}</div>`;
+        }
+        
+        return `
+          <div class="med-item adhoc ${drug.given ? 'given' : ''}">
+            <input type="checkbox" ${drug.given ? 'checked' : ''} 
+                   onchange="toggleAdhocMed(${index}, this.checked)">
+            <div class="med-info">
+              <div class="med-name">${drug.name} <button class="delete-adhoc" onclick="deleteAdhocMed(${index})">✕</button></div>
+              <div class="med-dose">${drug.dose}</div>
+              ${timeInfoHtml}
+              ${givenByHtml}
+            </div>
+            <div class="meal-toggle">
+              <button class="meal-btn ${drug.meal === 'M' ? 'active' : ''}" 
+                      onclick="setAdhocMeal(${index}, 'M')">Meal</button>
+              <button class="meal-btn ${drug.meal === 'S' ? 'active' : ''}" 
+                      onclick="setAdhocMeal(${index}, 'S')">Snack</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    async function addAdhocDrug() {
+      const drugId = document.getElementById('adhocDrugSelect').value;
+      const dose = document.getElementById('adhocDoseSelect').value;
+      
+      if (!drugId) {
+        alert('Please select a drug');
+        return;
+      }
+      
+      if (!dose) {
+        alert('Please select a dose');
+        return;
+      }
+      
+      const allDrugs = getAllDrugsForAdhoc();
+      const drug = allDrugs.find(d => d.id === drugId);
+      
+      const newDrug = {
+        name: drug.name,
+        dose: dose,
+        given: false,
+        meal: '',
+        givenBy: '',
+        givenAt: null,
+        addedAt: new Date().toISOString(),
+        addedBy: currentUser
+      };
+      
+      todayData.adhocMeds.push(newDrug);
+      
+      try {
+        await getTodayDocRef().set({ adhocMeds: todayData.adhocMeds }, { merge: true });
+        document.getElementById('adhocDrugSelect').value = '';
+        document.getElementById('adhocDoseSelect').innerHTML = '<option value="">Select dose...</option>';
+      } catch (error) {
+        console.error('Error adding adhoc drug:', error);
+        alert('Error saving. Check connection.');
+      }
+    }
+    
+    async function toggleAdhocMed(index, given) {
+      todayData.adhocMeds[index].given = given;
+      todayData.adhocMeds[index].givenBy = given ? currentUser : '';
+      todayData.adhocMeds[index].givenAt = given ? new Date().toISOString() : null;
+      
+      try {
+        await getTodayDocRef().set({ adhocMeds: todayData.adhocMeds }, { merge: true });
+      } catch (error) {
+        console.error('Error toggling adhoc med:', error);
+      }
+    }
+    
+    async function setAdhocMeal(index, type) {
+      todayData.adhocMeds[index].meal = todayData.adhocMeds[index].meal === type ? '' : type;
+      
+      try {
+        await getTodayDocRef().set({ adhocMeds: todayData.adhocMeds }, { merge: true });
+      } catch (error) {
+        console.error('Error setting adhoc meal:', error);
+      }
+    }
+    
+    async function deleteAdhocMed(index) {
+      if (confirm('Delete this medication?')) {
+        todayData.adhocMeds.splice(index, 1);
+        
+        try {
+          await getTodayDocRef().set({ adhocMeds: todayData.adhocMeds }, { merge: true });
+        } catch (error) {
+          console.error('Error deleting adhoc med:', error);
+        }
+      }
+    }
+    
+    // ========== CUSTOM DRUGS (Firebase) ==========
+    function subscribeToCustomDrugs() {
+      if (unsubscribeCustomDrugs) unsubscribeCustomDrugs();
+      
+      unsubscribeCustomDrugs = db.collection('drugConfigs').orderBy('name').onSnapshot((snapshot) => {
+        customDrugs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        populateAdhocDropdowns();
+        if (currentTab === 'settings') {
+          renderCustomDrugsList();
+        }
+      }, (error) => {
+        console.error('Custom drugs sync error:', error);
+      });
+    }
+    
+    function renderCurrentDrugsList() {
+      const container = document.getElementById('currentDrugsList');
+      container.innerHTML = MEDICATIONS.map(drug => `
+        <div class="drug-list-item current-drug">
+          <div class="drug-details">
+            <div class="drug-name">${drug.name}</div>
+            <div class="drug-schedule">${drug.dose} · Every 12h (6am & 6pm)</div>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    function renderCustomDrugsList() {
+      const container = document.getElementById('customDrugsList');
+      
+      if (customDrugs.length === 0) {
+        container.innerHTML = '<p class="info-text">No custom medications added yet.</p>';
+        return;
+      }
+      
+      container.innerHTML = customDrugs.map(drug => {
+        const endDate = drug.weeks > 0 ? new Date(new Date(drug.startDate).getTime() + drug.weeks * 7 * 24 * 60 * 60 * 1000).toLocaleDateString() : 'Ongoing';
+        return `
+          <div class="drug-list-item">
+            <div class="drug-details">
+              <div class="drug-name">${drug.name} ✨</div>
+              <div class="drug-schedule">
+                ${drug.defaultDose} · Every ${drug.hours}h · Start: ${new Date(drug.startDate).toLocaleDateString()} at ${drug.startTime}
+                <br>Ends: ${endDate}
+              </div>
+            </div>
+            <button class="delete-btn" onclick="deleteCustomDrug('${drug.id}')">Delete</button>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    function openAddDrugModal() {
+      document.getElementById('addDrugModal').classList.remove('hidden');
+      document.getElementById('newDrugStartDate').value = getDateKey();
+      document.getElementById('newDrugDoses').addEventListener('input', updateDefaultDoseOptions);
+    }
+    
+    function closeAddDrugModal() {
+      document.getElementById('addDrugModal').classList.add('hidden');
+    }
+    
+    function updateDefaultDoseOptions() {
+      const dosesInput = document.getElementById('newDrugDoses').value;
+      const defaultDoseSelect = document.getElementById('newDrugDefaultDose');
+      const doses = dosesInput.split(',').map(d => d.trim()).filter(d => d);
+      
+      defaultDoseSelect.innerHTML = doses.length > 0 
+        ? doses.map(d => `<option value="${d}">${d}</option>`).join('')
+        : '<option value="">-- Enter doses above first --</option>';
+    }
+    
+    async function saveDrugConfig() {
+      const name = document.getElementById('newDrugName').value.trim();
+      const dosesInput = document.getElementById('newDrugDoses').value.trim();
+      const defaultDose = document.getElementById('newDrugDefaultDose').value;
+      const hours = parseInt(document.getElementById('newDrugHours').value);
+      const weeks = parseInt(document.getElementById('newDrugWeeks').value);
+      const startDate = document.getElementById('newDrugStartDate').value;
+      const startTime = document.getElementById('newDrugStartTime').value;
+      
+      if (!name) {
+        alert('Please enter a drug name');
+        return;
+      }
+      
+      if (!dosesInput) {
+        alert('Please enter dose options');
+        return;
+      }
+      
+      if (!startDate) {
+        alert('Please select a start date');
+        return;
+      }
+      
+      const doses = dosesInput.split(',').map(d => d.trim()).filter(d => d);
+      
+      const newDrug = {
+        name,
+        doses,
+        defaultDose: defaultDose || doses[0],
+        hours,
+        weeks,
+        startDate,
+        startTime,
+        createdAt: new Date().toISOString(),
+        createdBy: currentUser
+      };
+      
+      try {
+        await db.collection('drugConfigs').add(newDrug);
+        closeAddDrugModal();
+        document.getElementById('newDrugName').value = '';
+        document.getElementById('newDrugDoses').value = '';
+        document.getElementById('newDrugDefaultDose').innerHTML = '<option value="">-- Enter doses above first --</option>';
+        alert('Medication added! It will now appear in the ad-hoc dropdown.');
+      } catch (error) {
+        console.error('Error saving drug config:', error);
+        alert('Error saving. Check connection.');
+      }
+    }
+    
+    async function deleteCustomDrug(id) {
+      if (confirm('Delete this medication? This will not delete historical tracking data.')) {
+        try {
+          await db.collection('drugConfigs').doc(id).delete();
+        } catch (error) {
+          console.error('Error deleting drug config:', error);
+        }
+      }
+    }
+    
+    // ========== BATHROOM ==========
+    function subscribeToBathroom() {
+      if (unsubscribeBathroom) unsubscribeBathroom();
+      
+      unsubscribeBathroom = getTodayDocRef().collection('bathroom')
+        .orderBy('time', 'desc')
+        .onSnapshot((snapshot) => {
+          todayData.bathroom = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          renderBathroomLog();
+          updateSyncStatus(true);
+        }, (error) => {
+          console.error('Bathroom sync error:', error);
+          updateSyncStatus(false);
+        });
+    }
+    
+    async function logBathroom(type) {
+      const entry = {
+        type,
+        time: new Date().toISOString(),
+        quality: type === 'poo' ? document.getElementById('poopQuality').value : '',
+        loggedBy: currentUser
+      };
+      
+      try {
+        await getTodayDocRef().collection('bathroom').add(entry);
+        document.getElementById('poopQuality').value = '';
+      } catch (error) {
+        console.error('Error logging bathroom:', error);
+        alert('Error saving. Check connection.');
+      }
+    }
+    
+    function renderBathroomLog() {
+      const container = document.getElementById('bathroomLog');
+      
+      if (todayData.bathroom.length === 0) {
+        container.innerHTML = '<p style="color:#999; text-align:center; padding: 20px;">No bathroom breaks logged yet today.</p>';
+        return;
+      }
+      
+      container.innerHTML = todayData.bathroom.map((entry) => {
+        const time = formatTime(entry.time);
+        const emoji = entry.type === 'pee' ? '💧' : '💩';
+        const note = entry.quality ? ` - ${entry.quality}` : '';
+        
+        // Get date and time parts for edit form
+        const entryDate = new Date(entry.time);
+        const dateValue = entryDate.toISOString().split('T')[0];
+        const timeValue = entryDate.toTimeString().slice(0, 5);
+        
+        return `
+          <div class="log-entry" id="entry-${entry.id}">
+            <span class="emoji">${emoji}</span>
+            <div class="details">
+              <div class="time">${time}</div>
+              <div class="note">${entry.type === 'pee' ? 'Pee' : 'Poop'}${note}</div>
+              <div class="logged-by">by ${entry.loggedBy || 'Unknown'}</div>
+            </div>
+            <div class="actions">
+              <button class="edit" onclick="showEditForm('${entry.id}', '${entry.type}', '${dateValue}', '${timeValue}', '${entry.quality || ''}')">Edit</button>
+              <button class="delete" onclick="deleteBathroomEntry('${entry.id}')">Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    function showEditForm(id, type, date, time, quality) {
+      const entryDiv = document.getElementById(`entry-${id}`);
+      const emoji = type === 'pee' ? '💧' : '💩';
+      const isPoop = type === 'poo';
+      
+      entryDiv.outerHTML = `
+        <div class="edit-form" id="edit-${id}">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+            <span style="font-size:1.5rem;">${emoji}</span>
+            <strong>${type === 'pee' ? 'Pee' : 'Poop'} Entry</strong>
+          </div>
+          <div class="form-row">
+            <label>Date</label>
+            <input type="date" id="edit-date-${id}" value="${date}">
+          </div>
+          <div class="form-row">
+            <label>Time</label>
+            <input type="time" id="edit-time-${id}" value="${time}">
+          </div>
+          ${isPoop ? `
+          <div class="form-row">
+            <label>Quality</label>
+            <select id="edit-quality-${id}">
+              <option value="">-- Select --</option>
+              <option value="Normal" ${quality === 'Normal' ? 'selected' : ''}>Normal</option>
+              <option value="Soft" ${quality === 'Soft' ? 'selected' : ''}>Soft</option>
+              <option value="Loose" ${quality === 'Loose' ? 'selected' : ''}>Loose</option>
+              <option value="Watery" ${quality === 'Watery' ? 'selected' : ''}>Watery</option>
+              <option value="Hard" ${quality === 'Hard' ? 'selected' : ''}>Hard</option>
+              <option value="Mucus" ${quality === 'Mucus' ? 'selected' : ''}>Mucus</option>
+              <option value="Blood" ${quality === 'Blood' ? 'selected' : ''}>Blood</option>
+            </select>
+          </div>
+          ` : ''}
+          <div class="btn-row">
+            <button class="save-btn" onclick="saveEdit('${id}', '${type}')">Save</button>
+            <button class="cancel-btn" onclick="cancelEdit()">Cancel</button>
+          </div>
+        </div>
+      `;
+    }
+    
+    async function saveEdit(id, type) {
+      const date = document.getElementById(`edit-date-${id}`).value;
+      const time = document.getElementById(`edit-time-${id}`).value;
+      const qualityEl = document.getElementById(`edit-quality-${id}`);
+      const quality = qualityEl ? qualityEl.value : '';
+      
+      if (!date || !time) {
+        alert('Please enter both date and time');
+        return;
+      }
+      
+      // Combine date and time into ISO string
+      const newDateTime = new Date(`${date}T${time}`).toISOString();
+      
+      try {
+        await getTodayDocRef().collection('bathroom').doc(id).update({
+          time: newDateTime,
+          quality: quality
+        });
+        // The snapshot listener will re-render automatically
+      } catch (error) {
+        console.error('Error updating entry:', error);
+        alert('Error saving changes. Check connection.');
+        renderBathroomLog(); // Re-render to show original
+      }
+    }
+    
+    function cancelEdit() {
+      renderBathroomLog();
+    }
+    
+    async function deleteBathroomEntry(id) {
+      if (confirm('Delete this entry?')) {
+        try {
+          await getTodayDocRef().collection('bathroom').doc(id).delete();
+        } catch (error) {
+          console.error('Error deleting:', error);
+        }
+      }
+    }
+    
+    // ========== HISTORY ==========
+    function changeHistoryDate(delta) {
+      historyDateOffset += delta;
+      if (historyDateOffset > 0) historyDateOffset = 0;
+      document.getElementById('nextDayBtn').disabled = historyDateOffset >= 0;
+      loadHistoryData();
+    }
+    
+    async function loadHistoryData() {
+      const dateKey = getDateKey(historyDateOffset);
+      const docRef = db.collection('days').doc(dateKey);
+      
+      const date = new Date(dateKey);
+      document.getElementById('historyDate').textContent = date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric'
+      });
+      
+      document.getElementById('historySummary').innerHTML = '<div class="loading">Loading...</div>';
+      
+      try {
+        const doc = await docRef.get();
+        const bathroomSnap = await docRef.collection('bathroom').get();
+        
+        const data = doc.exists ? doc.data() : { meds: {}, adhocMeds: [], notes: '' };
+        const bathroom = bathroomSnap.docs.map(d => d.data());
+        
+        // Count scheduled meds given
+        let medsGiven = 0;
+        let medsTotal = 0;
+        SCHEDULE.forEach((slot) => {
+          MEDICATIONS.forEach((drug) => {
+            medsTotal++;
+            const medKey = `${slot.id}_${drug.id}`;
+            if (data.meds && data.meds[medKey]?.given) medsGiven++;
+          });
+        });
+        
+        // Count adhoc meds
+        const adhocMeds = data.adhocMeds || [];
+        const adhocGiven = adhocMeds.filter(m => m.given).length;
+        
+        const peeCount = bathroom.filter(b => b.type === 'pee').length;
+        const pooCount = bathroom.filter(b => b.type === 'poo').length;
+        
+        document.getElementById('historySummary').innerHTML = `
+          <div class="summary-stat">
+            <span class="label">💊 Scheduled Meds</span>
+            <span class="value">${medsGiven} / ${medsTotal} given</span>
+          </div>
+          <div class="summary-stat">
+            <span class="label">💊 Ad-hoc Meds</span>
+            <span class="value">${adhocGiven} / ${adhocMeds.length} given</span>
+          </div>
+          <div class="summary-stat">
+            <span class="label">💧 Pee breaks</span>
+            <span class="value">${peeCount}</span>
+          </div>
+          <div class="summary-stat">
+            <span class="label">💩 Poop breaks</span>
+            <span class="value">${pooCount}</span>
+          </div>
+          <div class="summary-stat">
+            <span class="label">📝 Notes</span>
+            <span class="value" style="max-width:200px; text-align:right;">${data.notes || '—'}</span>
+          </div>
+        `;
+      } catch (error) {
+        console.error('Error loading history:', error);
+        document.getElementById('historySummary').innerHTML = '<p style="color:#c62828;">Error loading data</p>';
+      }
+    }
+    
+    // ========== EXPORT ==========
+    async function exportData() {
+      let csv = 'Date,Scheduled Time,Actual Time,Drug,Dose,Meal/Snack,Given By,Type,Quality,Notes\n';
+      
+      try {
+        const daysSnap = await db.collection('days').orderBy(firebase.firestore.FieldPath.documentId()).get();
+        
+        for (const dayDoc of daysSnap.docs) {
+          const dateKey = dayDoc.id;
+          const data = dayDoc.data();
+          
+          // Export scheduled meds
+          SCHEDULE.forEach((slot) => {
+            MEDICATIONS.forEach((drug) => {
+              const medKey = `${slot.id}_${drug.id}`;
+              const medData = data.meds?.[medKey];
+              if (medData?.given) {
+                const actualTime = medData.givenAt ? formatTime(medData.givenAt) : '';
+                csv += `${dateKey},${slot.label},${actualTime},${drug.name},${drug.dose},${medData.meal || ''},${medData.givenBy || ''},Scheduled,,\n`;
+              }
+            });
+          });
+          
+          // Export adhoc meds
+          const adhocMeds = data.adhocMeds || [];
+          adhocMeds.forEach(drug => {
+            if (drug.given) {
+              const actualTime = drug.givenAt ? formatTime(drug.givenAt) : '';
+              csv += `${dateKey},,${actualTime},${drug.name},${drug.dose},${drug.meal || ''},${drug.givenBy || ''},Ad-hoc,,\n`;
+            }
+          });
+          
+          // Export bathroom
+          const bathroomSnap = await dayDoc.ref.collection('bathroom').orderBy('time').get();
+          bathroomSnap.docs.forEach(doc => {
+            const entry = doc.data();
+            const time = formatTime(entry.time);
+            csv += `${dateKey},,${time},,,,,${entry.type === 'pee' ? 'Pee' : 'Poop'},${entry.quality || ''},\n`;
+          });
+          
+          // Export notes
+          if (data.notes) {
+            csv += `${dateKey},,,,,,,Note,,"${data.notes.replace(/"/g, '""')}"\n`;
+          }
+        }
+        
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cooper_health_tracker_${getDateKey()}.csv`;
+        a.click();
+      } catch (error) {
+        console.error('Export error:', error);
+        alert('Error exporting data. Check connection.');
+      }
+    }
+    
+    // ========== INIT ==========
+    function initApp() {
+      document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      });
+      
+      subscribeToMeds();
+      subscribeToBathroom();
+      subscribeToCustomDrugs();
+      populateAdhocDropdowns();
+      
+      // Update next dose every minute
+      setInterval(updateNextDose, 60000);
+    }
+    
+    // Start
+    checkUser();
+  </script>
+</body>
+</html>

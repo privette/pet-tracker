@@ -844,6 +844,129 @@
     .mt-2 { margin-top: 12px; }
     .mb-2 { margin-bottom: 12px; }
 
+    /* Profile Page */
+    .profile-header {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      margin: 0 auto 16px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .profile-avatar:hover {
+      transform: scale(1.05);
+    }
+
+    .profile-name {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 4px;
+    }
+
+    .profile-username {
+      font-size: 0.9rem;
+      color: var(--gray);
+    }
+
+    .avatar-selector {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .avatar-option {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .avatar-option:hover {
+      border-color: var(--primary);
+    }
+
+    .avatar-option.selected {
+      border-color: var(--primary);
+      background: #ebf4ff;
+    }
+
+    .profile-section {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 20px;
+      margin-top: 20px;
+    }
+
+    .profile-section h3 {
+      font-size: 0.95rem;
+      color: var(--dark);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .profile-stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      font-size: 0.9rem;
+    }
+
+    .profile-stat .label {
+      color: var(--gray);
+    }
+
+    .profile-stat .value {
+      font-weight: 600;
+      color: var(--dark);
+    }
+
+    .password-toggle {
+      background: var(--light);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      margin-top: 10px;
+    }
+
+    .password-toggle.hidden-form {
+      display: none;
+    }
+
+    .success-msg {
+      color: var(--success);
+      font-size: 0.85rem;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .error-msg {
+      color: var(--danger);
+      font-size: 0.85rem;
+      margin-top: 8px;
+      text-align: center;
+    }
+
     /* Install Banner */
     .install-banner {
       position: fixed;
@@ -1236,13 +1359,90 @@
   </div>
 </div>
 
-<!-- ========== USER MENU MODAL ========== -->
-<div class="modal-overlay hidden" id="userMenuModal">
+<!-- ========== PROFILE MODAL ========== -->
+<div class="modal-overlay hidden" id="profileModal">
   <div class="modal">
-    <h2>👤 Account</h2>
-    <p id="userMenuName">Logged in as User</p>
-    <button class="btn btn-primary mb-2" onclick="closeModal('userMenuModal')">Close</button>
-    <button class="btn btn-danger" onclick="logout()">Logout</button>
+    <div class="profile-header">
+      <div class="profile-avatar" id="profileAvatar" onclick="toggleAvatarPicker()">
+        <span id="profileAvatarEmoji">👤</span>
+      </div>
+      <div class="profile-name" id="profileDisplayName">User Name</div>
+      <div class="profile-username" id="profileUsername">@username</div>
+    </div>
+
+    <!-- Avatar Picker -->
+    <div class="avatar-selector hidden" id="avatarPicker">
+      <div class="avatar-option" onclick="selectAvatar('👤')">👤</div>
+      <div class="avatar-option" onclick="selectAvatar('😊')">😊</div>
+      <div class="avatar-option" onclick="selectAvatar('😎')">😎</div>
+      <div class="avatar-option" onclick="selectAvatar('🤠')">🤠</div>
+      <div class="avatar-option" onclick="selectAvatar('👨')">👨</div>
+      <div class="avatar-option" onclick="selectAvatar('👩')">👩</div>
+      <div class="avatar-option" onclick="selectAvatar('🧑')">🧑</div>
+      <div class="avatar-option" onclick="selectAvatar('👴')">👴</div>
+      <div class="avatar-option" onclick="selectAvatar('👵')">👵</div>
+      <div class="avatar-option" onclick="selectAvatar('🐕')">🐕</div>
+      <div class="avatar-option" onclick="selectAvatar('🐱')">🐱</div>
+      <div class="avatar-option" onclick="selectAvatar('🐴')">🐴</div>
+      <div class="avatar-option" onclick="selectAvatar('💜')">💜</div>
+      <div class="avatar-option" onclick="selectAvatar('⭐')">⭐</div>
+      <div class="avatar-option" onclick="selectAvatar('🌈')">🌈</div>
+    </div>
+
+    <!-- Account Stats -->
+    <div class="profile-section">
+      <h3>📊 Account Info</h3>
+      <div class="profile-stat">
+        <span class="label">Pets</span>
+        <span class="value" id="profilePetCount">0</span>
+      </div>
+      <div class="profile-stat">
+        <span class="label">Member Since</span>
+        <span class="value" id="profileMemberSince">-</span>
+      </div>
+    </div>
+
+    <!-- Change Name -->
+    <div class="profile-section">
+      <h3>✏️ Display Name</h3>
+      <div class="form-group">
+        <input type="text" id="profileNewName" placeholder="Enter new display name">
+      </div>
+      <button class="btn btn-primary" onclick="updateDisplayName()">Update Name</button>
+      <div id="nameUpdateMsg"></div>
+    </div>
+
+    <!-- Change Password -->
+    <div class="profile-section">
+      <h3>🔒 Change Password</h3>
+      <button class="btn btn-secondary" onclick="togglePasswordForm()" id="passwordToggleBtn">Change Password</button>
+
+      <div class="password-toggle hidden-form" id="passwordForm">
+        <div class="form-group">
+          <label>Current Password</label>
+          <input type="password" id="currentPassword" placeholder="Enter current password">
+        </div>
+        <div class="form-group">
+          <label>New Password</label>
+          <input type="password" id="newPassword" placeholder="Enter new password">
+        </div>
+        <div class="form-group">
+          <label>Confirm New Password</label>
+          <input type="password" id="confirmNewPassword" placeholder="Confirm new password">
+        </div>
+        <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+        <button class="btn btn-secondary" onclick="togglePasswordForm()">Cancel</button>
+        <div id="passwordChangeMsg"></div>
+      </div>
+    </div>
+
+    <!-- Logout -->
+    <div class="profile-section">
+      <h3>🚪 Session</h3>
+      <button class="btn btn-danger" onclick="logout()">Logout</button>
+    </div>
+
+    <button class="btn btn-secondary mt-2" onclick="closeModal('profileModal')">Close</button>
   </div>
 </div>
 
@@ -1411,9 +1611,9 @@ function initApp() {
   document.getElementById('authScreen').classList.add('hidden');
   document.getElementById('mainApp').classList.remove('hidden');
 
-  document.getElementById('userBadge').textContent = currentUser.name;
+  const avatarPrefix = currentUser.avatar ? currentUser.avatar + ' ' : '';
+  document.getElementById('userBadge').textContent = avatarPrefix + currentUser.name;
   document.getElementById('currentUserDisplay').textContent = currentUser.name;
-  document.getElementById('userMenuName').textContent = `Logged in as ${currentUser.name}`;
 
   loadPets();
   renderPetSelector();
@@ -2297,7 +2497,174 @@ function closeModal(id) {
 }
 
 function showUserMenu() {
-  document.getElementById('userMenuModal').classList.remove('hidden');
+  openProfileModal();
+}
+
+// ========== PROFILE MANAGEMENT ==========
+function openProfileModal() {
+  // Populate profile data
+  document.getElementById('profileDisplayName').textContent = currentUser.name;
+  document.getElementById('profileUsername').textContent = '@' + currentUser.username;
+  document.getElementById('profileAvatarEmoji').textContent = currentUser.avatar || '👤';
+  document.getElementById('profileNewName').value = currentUser.name;
+  document.getElementById('profilePetCount').textContent = pets.length;
+
+  // Format member since date
+  if (currentUser.createdAt) {
+    const date = new Date(currentUser.createdAt);
+    document.getElementById('profileMemberSince').textContent = date.toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric'
+    });
+  } else {
+    document.getElementById('profileMemberSince').textContent = '-';
+  }
+
+  // Reset forms
+  document.getElementById('avatarPicker').classList.add('hidden');
+  document.getElementById('passwordForm').classList.add('hidden-form');
+  document.getElementById('passwordToggleBtn').classList.remove('hidden');
+  document.getElementById('nameUpdateMsg').innerHTML = '';
+  document.getElementById('passwordChangeMsg').innerHTML = '';
+  document.getElementById('currentPassword').value = '';
+  document.getElementById('newPassword').value = '';
+  document.getElementById('confirmNewPassword').value = '';
+
+  // Update avatar selector to show current selection
+  updateAvatarSelection();
+
+  document.getElementById('profileModal').classList.remove('hidden');
+}
+
+function toggleAvatarPicker() {
+  document.getElementById('avatarPicker').classList.toggle('hidden');
+}
+
+function updateAvatarSelection() {
+  const currentAvatar = currentUser.avatar || '👤';
+  document.querySelectorAll('.avatar-option').forEach(opt => {
+    opt.classList.toggle('selected', opt.textContent === currentAvatar);
+  });
+}
+
+function selectAvatar(emoji) {
+  // Update user
+  currentUser.avatar = emoji;
+
+  // Save to storage
+  const users = getStorage('petcare_users', {});
+  users[currentUser.username].avatar = emoji;
+  setStorage('petcare_users', users);
+
+  // Update UI
+  document.getElementById('profileAvatarEmoji').textContent = emoji;
+  updateAvatarSelection();
+
+  // Update header badge with avatar
+  document.getElementById('userBadge').textContent = emoji + ' ' + currentUser.name;
+
+  // Hide picker
+  document.getElementById('avatarPicker').classList.add('hidden');
+}
+
+function updateDisplayName() {
+  const newName = document.getElementById('profileNewName').value.trim();
+  const msgEl = document.getElementById('nameUpdateMsg');
+
+  if (!newName) {
+    msgEl.innerHTML = '<span class="error-msg">Please enter a name</span>';
+    return;
+  }
+
+  if (newName.length < 2) {
+    msgEl.innerHTML = '<span class="error-msg">Name must be at least 2 characters</span>';
+    return;
+  }
+
+  // Update user
+  currentUser.name = newName;
+
+  // Save to storage
+  const users = getStorage('petcare_users', {});
+  users[currentUser.username].name = newName;
+  setStorage('petcare_users', users);
+
+  // Update UI
+  document.getElementById('profileDisplayName').textContent = newName;
+  document.getElementById('userBadge').textContent = (currentUser.avatar || '') + ' ' + newName;
+  document.getElementById('currentUserDisplay').textContent = newName;
+
+  msgEl.innerHTML = '<span class="success-msg">Name updated successfully!</span>';
+
+  setTimeout(() => {
+    msgEl.innerHTML = '';
+  }, 3000);
+}
+
+function togglePasswordForm() {
+  const form = document.getElementById('passwordForm');
+  const btn = document.getElementById('passwordToggleBtn');
+
+  if (form.classList.contains('hidden-form')) {
+    form.classList.remove('hidden-form');
+    btn.classList.add('hidden');
+  } else {
+    form.classList.add('hidden-form');
+    btn.classList.remove('hidden');
+    // Clear form
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmNewPassword').value = '';
+    document.getElementById('passwordChangeMsg').innerHTML = '';
+  }
+}
+
+function changePassword() {
+  const currentPwd = document.getElementById('currentPassword').value;
+  const newPwd = document.getElementById('newPassword').value;
+  const confirmPwd = document.getElementById('confirmNewPassword').value;
+  const msgEl = document.getElementById('passwordChangeMsg');
+
+  // Validate current password
+  if (atob(currentUser.password) !== currentPwd) {
+    msgEl.innerHTML = '<span class="error-msg">Current password is incorrect</span>';
+    return;
+  }
+
+  // Validate new password
+  if (!newPwd) {
+    msgEl.innerHTML = '<span class="error-msg">Please enter a new password</span>';
+    return;
+  }
+
+  if (newPwd.length < 4) {
+    msgEl.innerHTML = '<span class="error-msg">Password must be at least 4 characters</span>';
+    return;
+  }
+
+  if (newPwd !== confirmPwd) {
+    msgEl.innerHTML = '<span class="error-msg">New passwords do not match</span>';
+    return;
+  }
+
+  if (newPwd === currentPwd) {
+    msgEl.innerHTML = '<span class="error-msg">New password must be different</span>';
+    return;
+  }
+
+  // Update password
+  currentUser.password = btoa(newPwd);
+
+  // Save to storage
+  const users = getStorage('petcare_users', {});
+  users[currentUser.username].password = btoa(newPwd);
+  setStorage('petcare_users', users);
+
+  msgEl.innerHTML = '<span class="success-msg">Password changed successfully!</span>';
+
+  // Clear form and hide after delay
+  setTimeout(() => {
+    togglePasswordForm();
+  }, 2000);
 }
 
 // ========== PWA INSTALL ==========
